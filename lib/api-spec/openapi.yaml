@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: CarePath healthcare discovery, planning, appointments, demo tokens, reviews, and administration API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: carepath
+    description: Public healthcare discovery and authenticated patient services
+  - name: admin
+    description: Protected administration services
 paths:
   /healthz:
     get:
@@ -24,13 +28,743 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [carepath]
+      summary: Get public homepage summary
+      responses:
+        "200":
+          description: Homepage summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /hospitals:
+    get:
+      operationId: listHospitals
+      tags: [carepath]
+      summary: Search and filter demo hospital listings
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: city, in: query, schema: { type: string } }
+        - { name: locality, in: query, schema: { type: string } }
+        - { name: type, in: query, schema: { type: string, enum: [hospital, clinic] } }
+        - { name: open, in: query, schema: { type: boolean } }
+        - { name: specialty, in: query, schema: { type: string } }
+        - { name: latitude, in: query, schema: { type: number, minimum: -90, maximum: 90 } }
+        - { name: longitude, in: query, schema: { type: number, minimum: -180, maximum: 180 } }
+      responses:
+        "200":
+          description: Matching hospitals
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Hospital" }
+  /hospitals/{id}:
+    get:
+      operationId: getHospital
+      tags: [carepath]
+      summary: Get a hospital profile with doctors and reviews
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Hospital details
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HospitalDetail" }
+        "404": { description: Hospital not found }
+  /specialties:
+    get:
+      operationId: listSpecialties
+      tags: [carepath]
+      summary: List available specialties
+      responses:
+        "200":
+          description: Specialties
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Specialty" }
+  /emergency-facilities:
+    get:
+      operationId: listEmergencyFacilities
+      tags: [carepath]
+      summary: List sample emergency facilities
+      parameters:
+        - { name: city, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Sample emergency facilities; availability is not live
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/EmergencyFacility" }
+  /profile:
+    get:
+      operationId: getProfile
+      tags: [carepath]
+      summary: Get the signed-in user's profile
+      responses:
+        "200":
+          description: User profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserProfile" }
+        "401": { description: Sign in required }
+    patch:
+      operationId: updateProfile
+      tags: [carepath]
+      summary: Update the signed-in user's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProfileUpdate" }
+      responses:
+        "200":
+          description: Updated profile
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserProfile" }
+        "401": { description: Sign in required }
+  /appointments:
+    get:
+      operationId: listAppointments
+      tags: [carepath]
+      summary: List the signed-in user's appointments
+      responses:
+        "200":
+          description: User appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Appointment" }
+        "401": { description: Sign in required }
+    post:
+      operationId: createAppointment
+      tags: [carepath]
+      summary: Book a prototype appointment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AppointmentInput" }
+      responses:
+        "201":
+          description: Appointment created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+        "401": { description: Sign in required }
+  /appointments/{id}/cancel:
+    patch:
+      operationId: cancelAppointment
+      tags: [carepath]
+      summary: Cancel an appointment owned by the signed-in user
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Cancelled appointment
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Appointment" }
+        "404": { description: Appointment not found }
+        "401": { description: Sign in required }
+  /tokens:
+    get:
+      operationId: listTokens
+      tags: [carepath]
+      summary: List the signed-in user's demo tokens
+      responses:
+        "200":
+          description: User demo tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/DemoToken" }
+        "401": { description: Sign in required }
+    post:
+      operationId: createToken
+      tags: [carepath]
+      summary: Create a demo token for a hospital
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TokenInput" }
+      responses:
+        "201":
+          description: Demo token created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DemoToken" }
+        "401": { description: Sign in required }
+  /visit-plans:
+    get:
+      operationId: listVisitPlans
+      tags: [carepath]
+      summary: List the signed-in user's visit plans
+      responses:
+        "200":
+          description: Visit plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/VisitPlan" }
+        "401": { description: Sign in required }
+    post:
+      operationId: createVisitPlan
+      tags: [carepath]
+      summary: Create a visit plan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VisitPlanInput" }
+      responses:
+        "201":
+          description: Visit plan created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VisitPlan" }
+        "401": { description: Sign in required }
+  /visit-plans/{id}:
+    patch:
+      operationId: updateVisitPlan
+      tags: [carepath]
+      summary: Update a visit plan owned by the signed-in user
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VisitPlanUpdate" }
+      responses:
+        "200":
+          description: Updated visit plan
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VisitPlan" }
+        "404": { description: Visit plan not found }
+        "401": { description: Sign in required }
+    delete:
+      operationId: deleteVisitPlan
+      tags: [carepath]
+      summary: Delete a visit plan owned by the signed-in user
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Visit plan deleted }
+        "404": { description: Visit plan not found }
+        "401": { description: Sign in required }
+  /hospitals/{id}/reviews:
+    post:
+      operationId: createReview
+      tags: [carepath]
+      summary: Submit a review for a hospital
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReviewInput" }
+      responses:
+        "201":
+          description: Review submitted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Review" }
+        "401": { description: Sign in required }
+  /admin/hospitals:
+    get:
+      operationId: adminListHospitals
+      tags: [admin]
+      summary: List hospitals for administration
+      responses:
+        "200":
+          description: Hospitals
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Hospital" }
+        "403": { description: Admin access required }
+    post:
+      operationId: adminCreateHospital
+      tags: [admin]
+      summary: Add a hospital
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HospitalInput" }
+      responses:
+        "201":
+          description: Hospital created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Hospital" }
+        "403": { description: Admin access required }
+  /admin/hospitals/{id}:
+    patch:
+      operationId: adminUpdateHospital
+      tags: [admin]
+      summary: Edit a hospital
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HospitalUpdate" }
+      responses:
+        "200":
+          description: Updated hospital
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Hospital" }
+        "403": { description: Admin access required }
+    delete:
+      operationId: adminDeleteHospital
+      tags: [admin]
+      summary: Delete a hospital
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Hospital deleted }
+        "403": { description: Admin access required }
+  /admin/doctors:
+    get:
+      operationId: adminListDoctors
+      tags: [admin]
+      summary: List doctors for administration
+      responses:
+        "200":
+          description: Doctors
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Doctor" }
+        "403": { description: Admin access required }
+    post:
+      operationId: adminCreateDoctor
+      tags: [admin]
+      summary: Add a doctor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DoctorInput" }
+      responses:
+        "201":
+          description: Doctor created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Doctor" }
+        "403": { description: Admin access required }
+  /admin/doctors/{id}:
+    patch:
+      operationId: adminUpdateDoctor
+      tags: [admin]
+      summary: Edit a doctor
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DoctorUpdate" }
+      responses:
+        "200":
+          description: Updated doctor
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Doctor" }
+        "403": { description: Admin access required }
+    delete:
+      operationId: adminDeleteDoctor
+      tags: [admin]
+      summary: Delete a doctor
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Doctor deleted }
+        "403": { description: Admin access required }
+  /admin/specialties:
+    get:
+      operationId: adminListSpecialties
+      tags: [admin]
+      summary: List specialties for administration
+      responses:
+        "200":
+          description: Specialties
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Specialty" }
+        "403": { description: Admin access required }
+    post:
+      operationId: adminCreateSpecialty
+      tags: [admin]
+      summary: Add a specialty
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SpecialtyInput" }
+      responses:
+        "201":
+          description: Specialty created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Specialty" }
+        "403": { description: Admin access required }
+  /admin/specialties/{id}:
+    patch:
+      operationId: adminUpdateSpecialty
+      tags: [admin]
+      summary: Edit a specialty
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SpecialtyInput" }
+      responses:
+        "200":
+          description: Updated specialty
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Specialty" }
+        "403": { description: Admin access required }
+    delete:
+      operationId: adminDeleteSpecialty
+      tags: [admin]
+      summary: Delete a specialty
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        "204": { description: Specialty deleted }
+        "403": { description: Admin access required }
+  /admin/appointments:
+    get:
+      operationId: adminListAppointments
+      tags: [admin]
+      summary: View all appointments
+      responses:
+        "200":
+          description: Appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Appointment" }
+        "403": { description: Admin access required }
+  /admin/users:
+    get:
+      operationId: adminListUsers
+      tags: [admin]
+      summary: View registered users
+      responses:
+        "200":
+          description: Users
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/UserProfile" }
+        "403": { description: Admin access required }
+  /admin/reviews:
+    get:
+      operationId: adminListReviews
+      tags: [admin]
+      summary: View reviews for moderation
+      responses:
+        "200":
+          description: Reviews
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Review" }
+        "403": { description: Admin access required }
+  /admin/reviews/{id}:
+    patch:
+      operationId: adminModerateReview
+      tags: [admin]
+      summary: Hide or restore a review
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReviewModeration" }
+      responses:
+        "200":
+          description: Moderated review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Review" }
+        "403": { description: Admin access required }
 components:
   schemas:
     HealthStatus:
       type: object
+      properties: { status: { type: string } }
+      required: [status]
+    DashboardSummary:
+      type: object
       properties:
-        status:
-          type: string
-      required:
-        - status
+        hospitalCount: { type: integer }
+        specialtyCount: { type: integer }
+        cityCount: { type: integer }
+        cities: { type: array, items: { type: string } }
+        featuredHospitals: { type: array, items: { $ref: "#/components/schemas/Hospital" } }
+        specialties: { type: array, items: { $ref: "#/components/schemas/Specialty" } }
+      required: [hospitalCount, specialtyCount, cityCount, cities, featuredHospitals, specialties]
+    Hospital:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        type: { type: string, enum: [hospital, clinic] }
+        address: { type: string }
+        city: { type: string }
+        locality: { type: string }
+        contactPhone: { type: string }
+        distanceKm: { type: ["number", "null"] }
+        specialties: { type: array, items: { type: string } }
+        doctorCount: { type: integer }
+        rating: { type: number }
+        reviewCount: { type: integer }
+        waitingMinutes: { type: integer }
+        isOpen: { type: boolean }
+        isDemo: { type: boolean }
+        emergency: { type: boolean }
+        hours: { type: string }
+      required: [id, name, type, address, city, locality, contactPhone, distanceKm, specialties, doctorCount, rating, reviewCount, waitingMinutes, isOpen, isDemo, emergency, hours]
+    HospitalDetail:
+      allOf:
+        - { $ref: "#/components/schemas/Hospital" }
+        - type: object
+          properties:
+            doctors: { type: array, items: { $ref: "#/components/schemas/Doctor" } }
+            reviews: { type: array, items: { $ref: "#/components/schemas/Review" } }
+          required: [doctors, reviews]
+    HospitalInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        type: { type: string, enum: [hospital, clinic] }
+        address: { type: string }
+        city: { type: string }
+        locality: { type: string }
+        contactPhone: { type: string }
+        waitingMinutes: { type: integer, minimum: 0 }
+        isOpen: { type: boolean }
+        emergency: { type: boolean }
+        hours: { type: string }
+        specialtyIds: { type: array, items: { type: integer } }
+      required: [name, type, address, city, locality, contactPhone, waitingMinutes, isOpen, emergency, hours, specialtyIds]
+    HospitalUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        type: { type: string, enum: [hospital, clinic] }
+        address: { type: string }
+        city: { type: string }
+        locality: { type: string }
+        contactPhone: { type: string }
+        waitingMinutes: { type: integer, minimum: 0 }
+        isOpen: { type: boolean }
+        emergency: { type: boolean }
+        hours: { type: string }
+        specialtyIds: { type: array, items: { type: integer } }
+    Specialty:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string }
+      required: [id, name, description]
+    SpecialtyInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        description: { type: string }
+      required: [name, description]
+    Doctor:
+      type: object
+      properties:
+        id: { type: integer }
+        hospitalId: { type: integer }
+        name: { type: string }
+        specialtyId: { type: integer }
+        specialty: { type: string }
+        qualifications: { type: string }
+        yearsExperience: { type: integer }
+        available: { type: boolean }
+      required: [id, hospitalId, name, specialtyId, specialty, qualifications, yearsExperience, available]
+    DoctorInput:
+      type: object
+      properties:
+        hospitalId: { type: integer }
+        name: { type: string, minLength: 1 }
+        specialtyId: { type: integer }
+        qualifications: { type: string }
+        yearsExperience: { type: integer, minimum: 0 }
+        available: { type: boolean }
+      required: [hospitalId, name, specialtyId, qualifications, yearsExperience, available]
+    DoctorUpdate:
+      type: object
+      properties:
+        hospitalId: { type: integer }
+        name: { type: string, minLength: 1 }
+        specialtyId: { type: integer }
+        qualifications: { type: string }
+        yearsExperience: { type: integer, minimum: 0 }
+        available: { type: boolean }
+    Review:
+      type: object
+      properties:
+        id: { type: integer }
+        hospitalId: { type: integer }
+        hospitalName: { type: string }
+        userId: { type: string }
+        userName: { type: string }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        text: { type: string }
+        status: { type: string, enum: [visible, hidden] }
+        createdAt: { type: string, format: date-time }
+        isDemo: { type: boolean }
+      required: [id, hospitalId, hospitalName, userId, userName, rating, text, status, createdAt, isDemo]
+    ReviewInput:
+      type: object
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        text: { type: string, minLength: 1, maxLength: 1200 }
+      required: [rating, text]
+    ReviewModeration:
+      type: object
+      properties:
+        status: { type: string, enum: [visible, hidden] }
+      required: [status]
+    UserProfile:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [user, admin] }
+        createdAt: { type: string, format: date-time }
+      required: [id, name, email, role, createdAt]
+    ProfileUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+      required: [name]
+    Appointment:
+      type: object
+      properties:
+        id: { type: integer }
+        appointmentCode: { type: string }
+        patientName: { type: string }
+        hospitalId: { type: integer }
+        hospitalName: { type: string }
+        specialtyId: { type: integer }
+        specialty: { type: string }
+        doctorId: { type: integer }
+        doctorName: { type: string }
+        appointmentDate: { type: string, format: date }
+        appointmentTime: { type: string }
+        status: { type: string, enum: [booked, cancelled] }
+        isDemo: { type: boolean }
+        createdAt: { type: string, format: date-time }
+      required: [id, appointmentCode, patientName, hospitalId, hospitalName, specialtyId, specialty, doctorId, doctorName, appointmentDate, appointmentTime, status, isDemo, createdAt]
+    AppointmentInput:
+      type: object
+      properties:
+        patientName: { type: string, minLength: 1, maxLength: 120 }
+        hospitalId: { type: integer }
+        specialtyId: { type: integer }
+        doctorId: { type: integer }
+        appointmentDate: { type: string, format: date }
+        appointmentTime: { type: string, minLength: 1 }
+      required: [patientName, hospitalId, specialtyId, doctorId, appointmentDate, appointmentTime]
+    DemoToken:
+      type: object
+      properties:
+        id: { type: integer }
+        tokenNumber: { type: string }
+        hospitalId: { type: integer }
+        hospitalName: { type: string }
+        specialtyId: { type: integer }
+        specialty: { type: string }
+        waitingMinutes: { type: integer }
+        status: { type: string, enum: [active, completed] }
+        isDemo: { type: boolean }
+        createdAt: { type: string, format: date-time }
+      required: [id, tokenNumber, hospitalId, hospitalName, specialtyId, specialty, waitingMinutes, status, isDemo, createdAt]
+    TokenInput:
+      type: object
+      properties:
+        hospitalId: { type: integer }
+        specialtyId: { type: integer }
+      required: [hospitalId, specialtyId]
+    VisitPlan:
+      type: object
+      properties:
+        id: { type: integer }
+        hospitalId: { type: integer }
+        hospitalName: { type: string }
+        visitDate: { type: string, format: date }
+        purpose: { type: string }
+        notes: { type: string }
+        createdAt: { type: string, format: date-time }
+      required: [id, hospitalId, hospitalName, visitDate, purpose, notes, createdAt]
+    VisitPlanInput:
+      type: object
+      properties:
+        hospitalId: { type: integer }
+        visitDate: { type: string, format: date }
+        purpose: { type: string, minLength: 1 }
+        notes: { type: string }
+      required: [hospitalId, visitDate, purpose, notes]
+    VisitPlanUpdate:
+      type: object
+      properties:
+        hospitalId: { type: integer }
+        visitDate: { type: string, format: date }
+        purpose: { type: string, minLength: 1 }
+        notes: { type: string }
+      required: [hospitalId, visitDate, purpose, notes]
+    EmergencyFacility:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        type: { type: string }
+        address: { type: string }
+        city: { type: string }
+        phone: { type: string }
+        category: { type: string }
+        availabilityNote: { type: string }
+        isDemo: { type: boolean }
+      required: [id, name, type, address, city, phone, category, availabilityNote, isDemo]
 

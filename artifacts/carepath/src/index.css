@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --font-sans: var(--app-font-sans);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --background: 48 26% 97%;
+  --foreground: 148 25% 13%;
+  --border: 82 13% 85%;
+  --input: 82 13% 85%;
+  --ring: 82 32% 38%;
+  --card: 48 32% 99%;
+  --card-foreground: 148 25% 13%;
+  --card-border: 80 17% 88%;
+  --popover: 48 32% 99%;
+  --popover-foreground: 148 25% 13%;
+  --popover-border: 80 17% 88%;
+  --primary: 83 31% 34%;
+  --primary-foreground: 48 35% 97%;
+  --secondary: 84 25% 90%;
+  --secondary-foreground: 148 25% 15%;
+  --muted: 76 16% 92%;
+  --muted-foreground: 145 10% 40%;
+  --accent: 47 63% 79%;
+  --accent-foreground: 148 25% 15%;
+  --destructive: 2 62% 46%;
+  --destructive-foreground: 0 0% 100%;
+  --sidebar: 146 25% 16%;
+  --sidebar-foreground: 48 28% 95%;
+  --font-sans: var(--app-font-sans);
+  --app-font-sans: 'DM Sans', sans-serif;
+  --app-font-display: 'Manrope', sans-serif;
+  --app-font-mono: 'DM Sans', sans-serif;
+  --radius: 1rem;
+  --elevate-1: rgba(30, 48, 31, 0.04);
+  --elevate-2: rgba(30, 48, 31, 0.08);
+}
+.dark {
+  --background: 148 21% 10%;
+  --foreground: 48 28% 95%;
+  --border: 146 12% 25%;
+  --input: 146 12% 25%;
+  --ring: 82 32% 57%;
+  --card: 148 19% 13%;
+  --card-foreground: 48 28% 95%;
+  --card-border: 146 12% 25%;
+  --popover: 148 19% 13%;
+  --popover-foreground: 48 28% 95%;
+  --popover-border: 146 12% 25%;
+  --primary: 82 35% 55%;
+  --primary-foreground: 148 22% 11%;
+  --secondary: 145 16% 23%;
+  --secondary-foreground: 48 28% 95%;
+  --muted: 145 15% 21%;
+  --muted-foreground: 80 10% 67%;
+  --accent: 47 46% 53%;
+  --accent-foreground: 148 22% 11%;
+  --destructive: 2 62% 52%;
+  --destructive-foreground: 0 0% 100%;
+  --sidebar: 148 25% 8%;
+  --sidebar-foreground: 48 28% 95%;
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply font-sans antialiased bg-background text-foreground; min-width: 320px; }
+  button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+}
+
+* { box-sizing: border-box; }
+.font-display { font-family: var(--app-font-display); }
+.app-shell { min-height: 100dvh; background: hsl(var(--background)); }
+.page-wrap { width: min(1160px, calc(100% - 48px)); margin-inline: auto; }
+.topbar { position: sticky; top: 0; z-index: 40; background: rgba(249, 249, 242, .92); backdrop-filter: blur(14px); border-bottom: 1px solid hsl(var(--border)); }
+.nav-link { color: #526052; font-size: 13px; font-weight: 600; transition: color .18s ease; }
+.nav-link:hover, .nav-link.active { color: #344d2a; }
+.panel { background: hsl(var(--card)); border: 1px solid hsl(var(--card-border)); border-radius: 18px; }
+.field { width: 100%; min-height: 48px; border: 1px solid hsl(var(--border)); border-radius: 12px; background: #fffefa; padding: 0 14px; color: #1b2b1e; outline: none; transition: border-color .18s ease, box-shadow .18s ease; }
+.field:focus { border-color: #74884a; box-shadow: 0 0 0 3px rgba(116,136,74,.13); }
+.field::placeholder { color: #8d9587; }
+.btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 46px; border: 0; border-radius: 12px; background: #425d31; color: #fffdf5; padding: 0 18px; font-weight: 700; font-size: 14px; transition: transform .18s ease, background .18s ease; }
+.btn-primary:hover { background: #344b28; transform: translateY(-1px); }
+.btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; border: 1px solid #d5dccb; border-radius: 11px; background: #fffefa; color: #344b28; padding: 0 14px; font-weight: 700; font-size: 13px; transition: background .18s ease; }
+.btn-secondary:hover { background: #f0f2e8; }
+.eyebrow { text-transform: uppercase; letter-spacing: .14em; color: #71834d; font-size: 10px; font-weight: 800; }
+.soft-grid { background-image: radial-gradient(#a5b08d 0.7px, transparent 0.7px); background-size: 18px 18px; }
+.hero-field { background: #f0f1e7; border: 1px solid #e0e4d5; }
+.skeleton { background: linear-gradient(90deg,#e7e9df 25%,#f3f3ec 50%,#e7e9df 75%); background-size: 200% 100%; animation: shimmer 1.6s ease-in-out infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.reveal { animation: rise .45s ease both; }
+.disclaimer { color: #677161; font-size: 11px; line-height: 1.5; }
+.mobile-nav { display: none; }
+@media (max-width: 767px) {
+  .page-wrap { width: min(100% - 32px, 600px); }
+  .desktop-nav { display: none !important; }
+  .mobile-nav { display: flex; }
+  .mobile-bottom-space { padding-bottom: 88px; }
+  .hero-title { font-size: clamp(42px, 12vw, 64px) !important; }
+}

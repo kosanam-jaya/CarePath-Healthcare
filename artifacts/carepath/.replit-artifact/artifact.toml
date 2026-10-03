@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "CarePath"
+description = "A responsive healthcare discovery and visit-planning app with demo appointments, tokens, reviews, personal visit plans, emergency information, and protected administration."
+version = "1.0.0"
+id = "artifacts/carepath"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23532
+
+[services.development]
+run = "pnpm --filter @workspace/carepath run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/carepath", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/carepath/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23532"
+BASE_PATH = "/"
